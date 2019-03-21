@@ -42,31 +42,81 @@ var taskTabla5 = {
     HojaDeServicio: { '_': '' },
     Status: { '_': '' }
 };
+//Contadores:
 var contador = 0;
 var contadorRepeticion = 0;
 var contadorAprobados = 0;
+var iguales = 0;
+var hojadeserviciocount = 0;
+var bajacount = 0;
+var resguardocount = 0;
+var checkcount = 0;
+var borradocount = 0;
+var contadorDeCaracteres = 0;
+var contadorX = 0;
+var nombreDelProyectoExcel = "";
+//Contenedores:
+var baja = "";
 var borrado = "";
 var check = "";
+var hojadeservicio = "";
 var resguardo = "";
+var proyecto = "";
+//Excel:
 var celdaActual3Aprobados = 1;
 var celdaActualNoCumple = 1;
-var iguales = 0;
+//Control de do-while:
 var finalizar = false;
+//Variables del proyecto:
+var proyectoTrabajando = "INGRAM -IMPLEMENTACION";
+var bajaExiste = "";
+var borradoExiste = "";
+var checkExiste = "X";
+var resguardoExiste = "X";
+var hojaDeServicioExiste = "";
 
 //Programa
 async function working() {
+
+    //Contador de X:
+    if (bajaExiste == "X") {
+        contadorX++;
+    }
+    if (borradoExiste == "X") {
+        contadorX++;
+    }
+    if (checkExiste == "X") {
+        contadorX++;
+    }
+    if (resguardoExiste == "X") {
+        contadorX++;
+    }
+    if (hojaDeServicioExiste == "X") {
+        contadorX++;
+    }
+
+    //Contar caracteres del proyecto.
+    contadorDeCaracteres = proyectoTrabajando.length;
+
     //Colocación del titulo de cada columna del libro 3Aprobados:
     worksheet3Aprobados.getCell(`A${celdaActual3Aprobados}`).value = 'RowKey';
     worksheet3Aprobados.getCell(`B${celdaActual3Aprobados}`).value = 'Borrado';
     worksheet3Aprobados.getCell(`C${celdaActual3Aprobados}`).value = 'Check';
     worksheet3Aprobados.getCell(`D${celdaActual3Aprobados}`).value = 'Resguardo';
+    worksheet3Aprobados.getCell(`E${celdaActual3Aprobados}`).value = 'Baja';
+    worksheet3Aprobados.getCell(`F${celdaActual3Aprobados}`).value = 'HojaDeServicio';
+    worksheet3Aprobados.getCell(`G${celdaActual3Aprobados}`).value = 'Proyecto';
 
     //Colocación del titulo de cada columna del libro NoCumple:
     worksheetNoCumple.getCell(`A${celdaActualNoCumple}`).value = 'RowKey';
     worksheetNoCumple.getCell(`B${celdaActualNoCumple}`).value = 'Borrado';
     worksheetNoCumple.getCell(`C${celdaActualNoCumple}`).value = 'Check';
     worksheetNoCumple.getCell(`D${celdaActualNoCumple}`).value = 'Resguardo';
+    worksheetNoCumple.getCell(`E${celdaActualNoCumple}`).value = 'Baja';
+    worksheetNoCumple.getCell(`F${celdaActualNoCumple}`).value = 'HojaDeServicio';
+    worksheetNoCumple.getCell(`G${celdaActualNoCumple}`).value = 'Proyecto';
 
+    //Aumento de celdas Excel:
     celdaActual3Aprobados++;
     celdaActualNoCumple++;
 
@@ -84,50 +134,98 @@ function promesa() {
             //Logica por cada entidad:
             if (!error) {
                 results.entries.forEach(function(entry) {
+
+                    //Contador de entidades encontradas
                     contador++;
-                    borrado = "";
-                    check = "";
-                    resguardo = "";
+
+                    //Reiniciar contadores:
+                    borradocount = 0;
+                    bajacount = 0;
+                    checkcount = 0;
+                    resguardocount = 0;
+                    hojadeserviciocount = 0;
                     contadorRepeticion = 0;
                     contadorAprobados = 0;
+
+                    //Vaciar contenedores_
+                    borrado = "";
+                    baja = "";
+                    check = "";
+                    resguardo = "";
+                    hojadeservicio = "";
+                    proyecto = "";
+
                     console.log(`${entry['RowKey']['_']}`);
-                    for (var key in dataAzul) { //Inicia comparación desde libro azul...
-                        if (entry['RowKey']['_'] == dataAzul[key]['Serie']) {
-                            if (dataAzul[key]['TipoDoc'] == "Borrado") {
+
+                    for (var key in dataAzul) { //Inicia comparación desde libro.
+                        if (entry['RowKey']['_'] == dataAzul[key]['Serie']) { // Detectar concidencias con la entidad actual.
+
+                            //Extraer y cortar el nombre de proyecto desde Excel:
+                            nombreDelProyectoExcel = dataAzul[key]['Nombre'];
+                            nombreDelProyectoExcel = nombreDelProyectoExcel.slice(0, contadorDeCaracteres);
+
+                            //Detectar el tipo de documento seleccionado:
+                            if (dataAzul[key]['TipoDoc'] == "Borrado" && borradoExiste == "X") {
                                 borrado = dataAzul[key]['Estatus'];
                                 if (dataAzul[key]['Estatus'] == "Aprobado") {
                                     contadorAprobados++;
                                 }
-                            } else if (dataAzul[key]['TipoDoc'] == "Check") {
+                                borradocount++;
+                            } else if (dataAzul[key]['TipoDoc'] == "Check" && checkExiste == "X") {
                                 check = dataAzul[key]['Estatus'];
                                 if (dataAzul[key]['Estatus'] == "Aprobado") {
                                     contadorAprobados++;
                                 }
-                            } else if (dataAzul[key]['TipoDoc'] == "Resguardo") {
+                                checkcount++;
+                            } else if (dataAzul[key]['TipoDoc'] == "Resguardo" && resguardoExiste == "X") {
                                 resguardo = dataAzul[key]['Estatus'];
                                 if (dataAzul[key]['Estatus'] == "Aprobado") {
                                     contadorAprobados++;
                                 }
+                                resguardocount++;
+                            } else if (dataAzul[key]['TipoDoc'] == "HojaDeServicio" && hojaDeServicioExiste == "X") {
+                                hojadeservicio = dataAzul[key]['Estatus'];
+                                if (dataAzul[key]['Estatus'] == "Aprobado") {
+                                    contadorAprobados++;
+                                }
+                                hojadeserviciocount++;
+                            } else if (dataAzul[key]['TipoDoc'] == "Baja" && bajaExiste == "X") {
+                                baja = dataAzul[key]['Estatus'];
+                                if (dataAzul[key]['Estatus'] == "Aprobado") {
+                                    contadorAprobados++;
+                                }
+                                bajacount++;
                             }
+
                             console.log(`Son iguales: ${entry['RowKey']['_']} - ${dataAzul[key]['Serie']}`);
-                            contadorRepeticion++;
                         }
+                        //Contenedor del nombre de proyecto:
+                        proyecto = nombreDelProyectoExcel;
                     }
 
-                    if (contadorAprobados == 3) {
-                        //Escribir en el libro 3Aprobados:
+                    if (contadorAprobados == contadorX && proyectoTrabajando == proyecto) {
+                        //Escribir en el libro Aprobados:
                         worksheet3Aprobados.getCell(`A${celdaActual3Aprobados}`).value = entry['RowKey']['_'];
                         worksheet3Aprobados.getCell(`B${celdaActual3Aprobados}`).value = borrado;
                         worksheet3Aprobados.getCell(`C${celdaActual3Aprobados}`).value = check;
                         worksheet3Aprobados.getCell(`D${celdaActual3Aprobados}`).value = resguardo;
+                        worksheet3Aprobados.getCell(`E${celdaActual3Aprobados}`).value = hojadeservicio;
+                        worksheet3Aprobados.getCell(`F${celdaActual3Aprobados}`).value = baja;
+                        worksheet3Aprobados.getCell(`G${celdaActual3Aprobados}`).value = proyecto;
                         celdaActual3Aprobados++;
                         iguales++;
-                    } else {
-                        //Colocación del titulo de cada columna del libro NoCumple:
-                        worksheetNoCumple.getCell(`A${celdaActualNoCumple}`).value = entry['RowKey']['_'];
-                        worksheetNoCumple.getCell(`B${celdaActualNoCumple}`).value = borrado;
-                        worksheetNoCumple.getCell(`C${celdaActualNoCumple}`).value = check;
-                        worksheetNoCumple.getCell(`D${celdaActualNoCumple}`).value = resguardo;
+                    } else if (proyectoTrabajando == proyecto) {
+                        if (contadorRepeticion <= 1) {
+                            //Colocación del titulo de cada columna del libro NoCumple:
+                            worksheetNoCumple.getCell(`A${celdaActualNoCumple}`).value = entry['RowKey']['_'];
+                            worksheetNoCumple.getCell(`B${celdaActualNoCumple}`).value = borrado;
+                            worksheetNoCumple.getCell(`C${celdaActualNoCumple}`).value = check;
+                            worksheetNoCumple.getCell(`D${celdaActualNoCumple}`).value = resguardo;
+                            worksheetNoCumple.getCell(`E${celdaActualNoCumple}`).value = hojadeservicio;
+                            worksheetNoCumple.getCell(`F${celdaActualNoCumple}`).value = baja;
+                            worksheetNoCumple.getCell(`G${celdaActualNoCumple}`).value = proyecto;
+                            contadorRepeticion++;
+                        }
                         celdaActualNoCumple++;
                         iguales++;
                     }
@@ -151,7 +249,7 @@ function resultado() {
 
     //Guardar libros:
     if (celdaActual3Aprobados > 1) {
-        workbook3Aprobados.xlsx.writeFile('3Aprobados.xlsx').then(function() { //Puedes colocar cualquier nombre al archivo final sustituyendo "final.xlsx" (recuerda respetar siempre la extención .xlsx).
+        workbook3Aprobados.xlsx.writeFile('Aprobados.xlsx').then(function() { //Puedes colocar cualquier nombre al archivo final sustituyendo "final.xlsx" (recuerda respetar siempre la extención .xlsx).
             console.log("¡El archivo 3Aprobados se a creado correctamente!");
         });
     } else {
@@ -166,8 +264,9 @@ function resultado() {
         console.log("No hay información para crear el archivo");
     }
 
+    //Resumen por consola:
     console.log(`Se encontrarion ${contador} entidades.`);
-    console.log(`Se encontrarion ${iguales} que coinciden.`);
+    console.log(`Se encontrarion ${iguales} que coinciden con el trabajo.`);
     console.log("El programa ha terminado:");
 }
 
